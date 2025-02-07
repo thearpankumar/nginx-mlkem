@@ -18,3 +18,9 @@ This script sets up an **Nginx web server with post-quantum secure SSL** using t
 ```sh
 git clone https://github.com/your-repo/post-quantum-nginx.git
 cd post-quantum-nginx
+```
+
+```sh
+chmod +x setup_pqc_nginx.sh
+sudo ./setup_pqc_nginx.sh
+```
