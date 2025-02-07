@@ -1,3 +1,4 @@
+
 # Post-Quantum Secure Nginx Setup with OpenQuantumSafe (OQS) Provider
 
 This script sets up an **Nginx web server with post-quantum secure SSL** using the **OpenQuantumSafe (OQS) provider** and self-signed certificates. It automates the process of installing dependencies, configuring OpenSSL, setting up Nginx, and mapping the domain `example.com` to `localhost`.
@@ -19,6 +20,8 @@ This script sets up an **Nginx web server with post-quantum secure SSL** using t
 git clone https://github.com/your-repo/post-quantum-nginx.git
 cd post-quantum-nginx
 ```
+
+### **2 ⃣ Run the Script**
 
 ```sh
 chmod +x setup_pqc_nginx.sh
