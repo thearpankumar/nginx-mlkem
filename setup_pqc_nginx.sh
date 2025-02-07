@@ -11,17 +11,23 @@ sudo apt install -y cmake libssl-dev ninja-build git nginx
 echo "Checking OpenSSL version..."
 openssl version || sudo apt install -y openssl
 
-echo "Cloning OpenQuantumSafe provider..."
-git clone https://github.com/open-quantum-safe/oqs-provider.git
-cd oqs-provider
+# Check if OQS provider is already installed
+if [ -d "$HOME/oqs-provider" ]; then
+    echo "OQS Provider directory found. Skipping clone and build..."
+else
+    echo "Cloning OpenQuantumSafe provider..."
+    git clone https://github.com/open-quantum-safe/oqs-provider.git $HOME/oqs-provider
+    cd $HOME/oqs-provider
 
-echo "Building OQS provider..."
-scripts/fullbuild.sh
-sudo cmake --install _build
-scripts/runtests.sh
+    echo "Building OQS provider..."
+    scripts/fullbuild.sh
+    sudo cmake --install _build
+    scripts/runtests.sh
+fi
 
 echo "Configuring OpenSSL to use OQS provider..."
-sudo bash -c 'cat <<EOF >> /etc/ssl/openssl.cnf
+if ! grep -q "oqsprovider_sect" /etc/ssl/openssl.cnf; then
+    sudo bash -c 'cat <<EOF >> /etc/ssl/openssl.cnf
 
 # PQC via OpenQuantumSafe
 [provider_sect]
@@ -34,6 +40,7 @@ activate = 1
 [oqsprovider_sect]
 activate = 1
 EOF'
+fi
 
 echo "Checking available providers and KEM algorithms..."
 openssl list -providers
@@ -42,10 +49,14 @@ openssl list -kem-algorithms -provider oqsprovider | egrep -i "(kyber|kem)768"
 echo "Creating directory for SSL certificates..."
 sudo mkdir -p /opt/certs
 
-echo "Generating self-signed SSL certificate..."
-sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-    -keyout /opt/certs/pqc.key -out /opt/certs/pqc.crt \
-    -subj "/C=US/ST=Example/L=City/O=Organization/OU=Unit/CN=example.com"
+if [ ! -f "/opt/certs/pqc.crt" ]; then
+    echo "Generating self-signed SSL certificate..."
+    sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout /opt/certs/pqc.key -out /opt/certs/pqc.crt \
+        -subj "/C=US/ST=Example/L=City/O=Organization/OU=Unit/CN=example.com"
+else
+    echo "SSL certificate already exists. Skipping generation..."
+fi
 
 echo "Configuring Nginx..."
 sudo bash -c 'cat <<EOF > /etc/nginx/nginx.conf
@@ -145,7 +156,8 @@ sudo systemctl reload nginx
 echo "Creating website directory and index.html..."
 sudo mkdir -p /var/www/example.com
 
-sudo bash -c 'cat <<EOF > /var/www/example.com/index.html
+if [ ! -f "/var/www/example.com/index.html" ]; then
+    sudo bash -c 'cat <<EOF > /var/www/example.com/index.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -178,6 +190,9 @@ sudo bash -c 'cat <<EOF > /var/www/example.com/index.html
 </body>
 </html>
 EOF'
+else
+    echo "index.html already exists. Skipping creation..."
+fi
 
 echo "Reloading Nginx one final time..."
 sudo systemctl reload nginx
