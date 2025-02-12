@@ -90,13 +90,6 @@ pid /run/nginx.pid;
 error_log /var/log/nginx/error.log;
 include /etc/nginx/modules-enabled/*.conf;
 
-#user  nobody;
-#error_log  logs/error.log;
-#error_log  logs/error.log  notice;
-#error_log  logs/error.log  info;
-
-#pid        logs/nginx.pid;
-
 
 events {
     worker_connections  1024;
@@ -107,25 +100,19 @@ http {
     include       mime.types;
     default_type  application/octet-stream;
 
-    #log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
-    #                  '$status $body_bytes_sent "$http_referer" '
-    #                  '"$http_user_agent" "$http_x_forwarded_for"';
-
-    #access_log  logs/access.log  main;
-
     sendfile        on;
     #tcp_nopush     on;
     include /etc/nginx/conf.d/pqc.conf;
     tcp_nopush on;
     types_hash_max_size 2048;
 
-    #keepalive_timeout  0;
-    keepalive_timeout  65;
     ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
     ssl_prefer_server_ciphers on;
     include /usr/local/nginx/conf.d/*.conf;
     include /usr/local/nginx/sites-enabled/*;
-}
+
+    }
+
 EOF'
 
 sudo mkdir -p /usr/local/nginx/conf.d
@@ -135,7 +122,7 @@ server {
     listen 80;
     listen [::]:80;
     server_name example.com www.example.com;
-    return 301 https://\$host\$request_uri;
+    return 301 https://$host$request_uri;
 }
 
 server {
@@ -154,20 +141,24 @@ server {
 
     location / {
         proxy_pass http://127.0.0.1:5000/;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-SSL-CURVE \$ssl_curve;
-        proxy_set_header X-SSL-PROTOCOL \$ssl_protocol;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-SSL-CURVE $ssl_curve;
+        proxy_set_header X-SSL-PROTOCOL $ssl_protocol;
 
         proxy_http_version 1.1;
 
         # Log the SSL curve and protocol for debugging
         access_log /var/log/nginx/ssl_curve.log;
 
+        zstd on;
+        zstd_min_length 256;  # No less than 256 bytes
+        zstd_comp_level 3;     # Set the compression level to 3
+
         # Add headers for debugging (optional)
-        add_header X-SSL-Protocol \$ssl_protocol;
-        add_header X-SSL-Curve \$ssl_curve;
+        add_header X-SSL-Protocol $ssl_protocol;
+        add_header X-SSL-Curve $ssl_curve;
     }
 }
 EOF'
