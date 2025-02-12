@@ -27,3 +27,7 @@ cd post-quantum-nginx
 chmod +x setup_pqc_nginx.sh
 sudo ./setup_pqc_nginx.sh
 ```
+
+## # Correct Output
+
+![Alt Text](./OUTPUT.png "Title or Tooltip")
