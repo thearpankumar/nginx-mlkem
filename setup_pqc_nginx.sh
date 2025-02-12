@@ -122,7 +122,7 @@ server {
     listen 80;
     listen [::]:80;
     server_name example.com www.example.com;
-    return 301 https://$host$request_uri;
+    return 301 https://\$host\$request_uri;
 }
 
 server {
@@ -141,11 +141,11 @@ server {
 
     location / {
         proxy_pass http://127.0.0.1:5000/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-SSL-CURVE $ssl_curve;
-        proxy_set_header X-SSL-PROTOCOL $ssl_protocol;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-SSL-CURVE \$ssl_curve;
+        proxy_set_header X-SSL-PROTOCOL \$ssl_protocol;
 
         proxy_http_version 1.1;
 
@@ -157,8 +157,8 @@ server {
         zstd_comp_level 3;     # Set the compression level to 3
 
         # Add headers for debugging (optional)
-        add_header X-SSL-Protocol $ssl_protocol;
-        add_header X-SSL-Curve $ssl_curve;
+        add_header X-SSL-Protocol \$ssl_protocol;
+        add_header X-SSL-Curve \$ssl_curve;
     }
 }
 EOF'
