@@ -18,7 +18,7 @@ def index():
     ssl_curve = request.headers.get('X-Ssl-Curve', 'Unknown')  # Updated header name
 
     # Check if the curve is an MLKEM curve
-    mlkem_curves = {
+    ecdh_curves = {
     "frodo640aes": 65024,
     "p256_frodo640aes": 0x2F00,
     "x25519_frodo640aes": 0x2F80,
