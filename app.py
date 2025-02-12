@@ -148,11 +148,11 @@ def index():
         ssl_curve_int = None  # Handle invalid or missing values
 
     # Check if the curve is an MLKEM curve
-    is_mlkem = ssl_curve_int in mlkem_curves.values()
+    is_mlkem = ssl_curve_int in ecdh_curves.values()
 
     # Get the algorithm name for the curve
     key_name = next(
-        (key for key, value in mlkem_curves.items() if value == ssl_curve_int),
+        (key for key, value in ecdh_curves.items() if value == ssl_curve_int),
         "Unknown"
     )
 

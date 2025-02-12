@@ -6,7 +6,7 @@ echo "Updating package lists..."
 sudo apt update
 
 echo "Installing required packages..."
-sudo apt install -y cmake libssl-dev ninja-build git nginx python3-flask
+sudo apt install -y cmake libssl-dev ninja-build git python3-flask
 
 echo "Checking OpenSSL version..."
 openssl version || sudo apt install -y openssl
@@ -23,6 +23,30 @@ else
     scripts/fullbuild.sh
     sudo cmake --install _build
     scripts/runtests.sh
+fi
+
+if [ -d "$HOME/zstd-ngninx-module" ]; then
+    echo "OQS Provider directory found. Skipping clone and build..."
+else
+    echo "Cloning OpenQuantumSafe provider..."
+    git clone https://github.com/tokers/zstd-nginx-module.git $HOME/zstd-ngninx-module
+fi
+
+if [ -d "$HOME/nginx-1.27.4" ]; then
+    echo "OQS Provider directory found. Skipping clone and build..."
+else
+    echo "Cloning OpenQuantumSafe provider..."
+    wget http://nginx.org/download/nginx-1.27.4.tar.gz
+    tar -xvzf nginx-1.27.4.tar.gz
+    cd $HOME/nginx-1.27.4
+
+    ./configure --prefix=/usr/local/nginx \
+            --with-http_ssl_module \
+            --with-http_gzip_static_module \
+            --with-http_v2_module \
+            --add-module=$HOME/nginx-zstd-module
+    make
+    sudo make install
 fi
 
 echo "Configuring OpenSSL to use OQS provider..."
@@ -59,73 +83,54 @@ else
 fi
 
 echo "Configuring Nginx..."
-sudo bash -c 'cat <<EOF > /etc/nginx/nginx.conf
+sudo bash -c 'cat <<EOF > /usr/local/nginx/conf/nginx.conf
 user www-data;
 worker_processes auto;
 pid /run/nginx.pid;
 error_log /var/log/nginx/error.log;
 include /etc/nginx/modules-enabled/*.conf;
 
+#user  nobody;
+#error_log  logs/error.log;
+#error_log  logs/error.log  notice;
+#error_log  logs/error.log  info;
+
+#pid        logs/nginx.pid;
+
+
 events {
-        worker_connections 768;
-        # multi_accept on;
+    worker_connections  1024;
 }
 
+
 http {
+    include       mime.types;
+    default_type  application/octet-stream;
 
-        ##
-        # Basic Settings
-        ##
-        include /etc/nginx/conf.d/pqc.conf;
+    #log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+    #                  '$status $body_bytes_sent "$http_referer" '
+    #                  '"$http_user_agent" "$http_x_forwarded_for"';
 
-        sendfile on;
-        tcp_nopush on;
-        types_hash_max_size 2048;
-        # server_tokens off;
+    #access_log  logs/access.log  main;
 
-        # server_names_hash_bucket_size 64;
-        # server_name_in_redirect off;
+    sendfile        on;
+    #tcp_nopush     on;
+    include /etc/nginx/conf.d/pqc.conf;
+    tcp_nopush on;
+    types_hash_max_size 2048;
 
-        include /etc/nginx/mime.types;
-        default_type application/octet-stream;
-
-        ##
-        # SSL Settings
-        ##
-
-        ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
-        ssl_prefer_server_ciphers on;
-
-        ##
-        # Logging Settings
-        ##
-        access_log /var/log/nginx/access.log;
-
-        ##
-        # Gzip Settings
-        ##
-
-        gzip on;
-
-        # gzip_vary on;
-        # gzip_proxied any;
-        # gzip_comp_level 6;
-        # gzip_buffers 16 8k;
-        # gzip_http_version 1.1;
-        # gzip_types text/plain text/css application/json application/javascript text/xml app>
-
-        ##
-        # Virtual Host Configs
-        ##
-
-        include /etc/nginx/conf.d/*.conf;
-        include /etc/nginx/sites-enabled/*;
+    #keepalive_timeout  0;
+    keepalive_timeout  65;
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    include /usr/local/nginx/conf.d/*.conf;
+    include /usr/local/nginx/sites-enabled/*;
 }
 EOF'
 
-sudo mkdir -p /etc/nginx/conf.d
+sudo mkdir -p /usr/local/nginx/conf.d
 
-sudo bash -c 'cat <<EOF > /etc/nginx/conf.d/pqc.conf
+sudo bash -c 'cat <<EOF > /usr/local/nginx/conf.d/pqc.conf
 server {
     listen 80;
     listen [::]:80;
@@ -166,6 +171,34 @@ server {
     }
 }
 EOF'
+
+sudo rm -f /usr/sbin/nginx
+
+sudo ln -s /usr/local/nginx/sbin/nginx /usr/sbin/nginx
+
+nginx -v
+
+sudo touch /etc/systemd/system/nginx.service
+
+sudo bash -c 'cat <<EOF > /etc/systemd/system/nginx.service
+[Unit]
+Description=Custom Nginx Service
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/usr/local/nginx/sbin/nginx
+ExecReload=/usr/local/nginx/sbin/nginx -s reload
+ExecStop=/usr/local/nginx/sbin/nginx -s stop
+PIDFile=/run/nginx.pid
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF'
+
+sudo systemctl daemon-reload
+sudo systemctl start nginx
 
 echo "Reloading Nginx..."
 sudo systemctl reload nginx
