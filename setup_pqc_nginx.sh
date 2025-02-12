@@ -93,7 +93,7 @@ http {
         # SSL Settings
         ##
 
-        ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3; # Dropping SSLv3, ref: POODLE
+        ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
         ssl_prefer_server_ciphers on;
 
         ##
@@ -130,7 +130,7 @@ server {
     listen 80;
     listen [::]:80;
     server_name example.com www.example.com;
-    return 301 https://$host$request_uri;
+    return 301 https://\$host\$request_uri;
 }
 
 server {
@@ -145,25 +145,24 @@ server {
     ssl_ciphers HIGH:!aNULL:!MD5;
     ssl_prefer_server_ciphers on;
 
-    ssl_ecdh_curve X25519MLKEM768:p384_mlkem768:x25519_mlkem512:x448_mlkem768:SecP256r1MLKEM7>
+    ssl_ecdh_curve X25519MLKEM768:p384_mlkem768:x25519_mlkem512:x448_mlkem768:SecP256r1MLKEM768:SecP384r1MLKEM1024;
 
     location / {
         proxy_pass http://127.0.0.1:5000/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-SSL-CURVE $ssl_curve;
-        proxy_set_header X-SSL-PROTOCOL $ssl_protocol;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-SSL-CURVE \$ssl_curve;
+        proxy_set_header X-SSL-PROTOCOL \$ssl_protocol;
 
         proxy_http_version 1.1;
-        proxy_set_header Connection "";
 
         # Log the SSL curve and protocol for debugging
         access_log /var/log/nginx/ssl_curve.log;
 
         # Add headers for debugging (optional)
-        add_header X-SSL-Protocol $ssl_protocol;
-        add_header X-SSL-Curve $ssl_curve;
+        add_header X-SSL-Protocol \$ssl_protocol;
+        add_header X-SSL-Curve \$ssl_curve;
     }
 }
 EOF'
