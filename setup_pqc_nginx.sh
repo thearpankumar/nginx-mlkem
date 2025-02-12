@@ -6,7 +6,7 @@ echo "Updating package lists..."
 sudo apt update
 
 echo "Installing required packages..."
-sudo apt install -y cmake libssl-dev ninja-build git nginx
+sudo apt install -y cmake libssl-dev ninja-build git nginx python3-flask
 
 echo "Checking OpenSSL version..."
 openssl version || sudo apt install -y openssl
@@ -130,7 +130,7 @@ server {
     listen 80;
     listen [::]:80;
     server_name example.com www.example.com;
-    return 301 https://\$host\$request_uri;
+    return 301 https://$host$request_uri;
 }
 
 server {
@@ -138,71 +138,37 @@ server {
     listen [::]:443 ssl;
     server_name example.com www.example.com;
     root /var/www/example.com;
+
     ssl_certificate /opt/certs/pqc.crt;
     ssl_certificate_key /opt/certs/pqc.key;
     ssl_protocols TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
     ssl_prefer_server_ciphers on;
-    ssl_ecdh_curve X25519MLKEM768:p384_mlkem768:x25519_mlkem512:x448_mlkem768:SecP256r1MLKEM768:SecP384r1MLKEM1024;
+
+    ssl_ecdh_curve X25519MLKEM768:p384_mlkem768:x25519_mlkem512:x448_mlkem768:SecP256r1MLKEM7>
 
     location / {
-        try_files \$uri \$uri/ =404;
+        proxy_pass http://127.0.0.1:5000/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-SSL-CURVE $ssl_curve;
+        proxy_set_header X-SSL-PROTOCOL $ssl_protocol;
+
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+
+        # Log the SSL curve and protocol for debugging
+        access_log /var/log/nginx/ssl_curve.log;
+
+        # Add headers for debugging (optional)
+        add_header X-SSL-Protocol $ssl_protocol;
+        add_header X-SSL-Curve $ssl_curve;
     }
 }
 EOF'
 
 echo "Reloading Nginx..."
-sudo systemctl reload nginx
-
-echo "Creating website directory and index.html..."
-sudo mkdir -p /var/www/example.com
-
-if [ ! -f "/var/www/example.com/index.html" ]; then
-    sudo bash -c '#!/bin/bash
-
-cat <<EOF > /var/www/example.com/index.html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SSL Curve Information</title>
-    <script>
-        async function fetchSSLCurveInfo() {
-            try {
-                const response = await fetch(window.location.href, { method: 'HEAD' });
-                const sslCurve = response.headers.get('SSL-Curve') || "Unknown";
-                const curveInfoElement = document.getElementById("curve-info");
-
-                if (sslCurve === "0x6399") {
-                    curveInfoElement.innerHTML = "<p class='secure'>You are using X25519Kyber768Draft00 which is post-quantum secure.</p>";
-                } else if (sslCurve === "0x4588") {
-                    curveInfoElement.innerHTML = "<p class='secure'>You are using X25519MLKEM768, which is post-quantum secure.</p>";
-                } else {
-                    curveInfoElement.innerHTML = "<p class='not-secure'>You are using SSL Curve: ${sslCurve} which is not post-quantum secure.</p>";
-                }
-            } catch (error) {
-                console.error("Failed to fetch SSL curve info:", error);
-                document.getElementById("curve-info").innerHTML = "<p class='not-secure'>Unable to determine SSL Curve.</p>";
-            }
-        }
-        window.onload = fetchSSLCurveInfo;
-    </script>
-    <style>
-        .secure { color: green; }
-        .not-secure { color: red; }
-    </style>
-</head>
-<body>
-    <h1>Your SSL Curve Information</h1>
-    <div id="curve-info"></div>
-</body>
-</html>
-EOF'
-else
-    echo "index.html already exists. Skipping creation..."
-fi
-
-echo "Reloading Nginx one final time..."
 sudo systemctl reload nginx
 
 echo "Updating /etc/hosts to map example.com to localhost..."
@@ -213,3 +179,4 @@ fi
 echo "Setup complete! Your website is now running with Post-Quantum Secure SSL."
 echo "Visit: https://example.com (Ensure you accept the self-signed SSL certificate in your browser.)"
 
+python3 app.py
