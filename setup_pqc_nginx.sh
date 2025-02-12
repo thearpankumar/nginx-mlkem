@@ -157,7 +157,9 @@ echo "Creating website directory and index.html..."
 sudo mkdir -p /var/www/example.com
 
 if [ ! -f "/var/www/example.com/index.html" ]; then
-    sudo bash -c 'cat <<EOF > /var/www/example.com/index.html
+    sudo bash -c '#!/bin/bash
+
+cat <<EOF > /var/www/example.com/index.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -165,19 +167,25 @@ if [ ! -f "/var/www/example.com/index.html" ]; then
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SSL Curve Information</title>
     <script>
-        function displaySSLCurveInfo() {
-            const sslCurve = "0x6399"; // Simulated value, replace with actual logic
-            const curveInfoElement = document.getElementById("curve-info");
+        async function fetchSSLCurveInfo() {
+            try {
+                const response = await fetch(window.location.href, { method: 'HEAD' });
+                const sslCurve = response.headers.get('SSL-Curve') || "Unknown";
+                const curveInfoElement = document.getElementById("curve-info");
 
-            if (sslCurve === "0x6399") {
-                curveInfoElement.innerHTML = "<p class='secure'>You are using X25519Kyber768Draft00 which is post-quantum secure.</p>";
-            } else if (sslCurve === "0x4588") {
-                curveInfoElement.innerHTML = "<p class='secure'>You are using X25519MLKEM768, which is post-quantum secure.</p>";
-            } else {
-                curveInfoElement.innerHTML = "<p class='not-secure'>You are using SSL Curve: " + sslCurve + " which is not post-quantum secure.</p>";
+                if (sslCurve === "0x6399") {
+                    curveInfoElement.innerHTML = "<p class='secure'>You are using X25519Kyber768Draft00 which is post-quantum secure.</p>";
+                } else if (sslCurve === "0x4588") {
+                    curveInfoElement.innerHTML = "<p class='secure'>You are using X25519MLKEM768, which is post-quantum secure.</p>";
+                } else {
+                    curveInfoElement.innerHTML = "<p class='not-secure'>You are using SSL Curve: ${sslCurve} which is not post-quantum secure.</p>";
+                }
+            } catch (error) {
+                console.error("Failed to fetch SSL curve info:", error);
+                document.getElementById("curve-info").innerHTML = "<p class='not-secure'>Unable to determine SSL Curve.</p>";
             }
         }
-        window.onload = displaySSLCurveInfo;
+        window.onload = fetchSSLCurveInfo;
     </script>
     <style>
         .secure { color: green; }
