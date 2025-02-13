@@ -13,7 +13,7 @@ This script sets up an **Nginx web server with post-quantum secure SSL** using t
 
 ---
 
-## 🛠 Installation
+## 🛠 Installation {UBUNTU 22.04}
 
 ### **1️⃣ Clone the Repository**
 ```sh
