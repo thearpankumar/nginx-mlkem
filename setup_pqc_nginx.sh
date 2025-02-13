@@ -12,7 +12,7 @@ echo "Checking OpenSSL version..."
 openssl version || sudo apt install -y openssl
 
 
-HOME=/home/warmachine/codes/Encrypt5/nginx_with_mlkem
+HOME=$PWD 
 
 # Check if OQS provider is already installed
 if [ -d "$HOME/oqs-provider" ]; then
@@ -28,11 +28,11 @@ else
     scripts/runtests.sh
 fi
 
-if [ -d "$HOME/zstd-ngninx-module" ]; then
-    echo "OQS Provider directory found. Skipping clone and build..."
+if [ -d "$HOME/zstd-nginx-module" ]; then
+    echo "zstd-nginx-module directory found. Skipping clone..."
 else
-    echo "Cloning OpenQuantumSafe provider..."
-    git clone https://github.com/tokers/zstd-nginx-module.git $HOME/zstd-ngninx-module
+    echo "Cloning zstd-nginx-module..."
+    git clone https://github.com/tokers/zstd-nginx-module.git "$HOME/zstd-nginx-module"
 fi
 
 if [ -d "$HOME/nginx-1.27.4" ]; then
@@ -205,4 +205,4 @@ fi
 echo "Setup complete! Your website is now running with Post-Quantum Secure SSL."
 echo "Visit: https://example.com (Ensure you accept the self-signed SSL certificate in your browser.)"
 
-python3 /home/warmachine/codes/Encrypt5/nginx_with_mlkem/app.py
+python3 $HOME/app.py
