@@ -174,7 +174,7 @@ server {
         proxy_http_version 1.1;
 
         # Log the SSL curve and protocol for debugging
-        access_log /var/log/nginx/ssl_curve.log;
+        #access_log /var/log/nginx/ssl_curve.log;
 
         zstd on;
         zstd_min_length 256;  # No less than 256 bytes
