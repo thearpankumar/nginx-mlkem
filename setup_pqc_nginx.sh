@@ -115,7 +115,7 @@ user www-data;
 worker_processes auto;
 pid /run/nginx.pid;
 error_log /var/log/nginx/error.log;
-include /etc/nginx/modules-enabled/*.conf;
+
 
 
 events {
@@ -129,7 +129,7 @@ http {
 
     sendfile        on;
     #tcp_nopush     on;
-    include /etc/nginx/conf.d/pqc.conf;
+    include /usr/local/nginx/conf.d/pqc.conf;
     tcp_nopush on;
     types_hash_max_size 2048;
 
