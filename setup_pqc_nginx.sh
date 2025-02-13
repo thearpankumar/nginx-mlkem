@@ -114,9 +114,6 @@ sudo bash -c 'cat <<EOF > /usr/local/nginx/conf/nginx.conf
 user www-data;
 worker_processes auto;
 pid /run/nginx.pid;
-error_log /var/log/nginx/error.log;
-
-
 
 events {
     worker_connections  1024;
