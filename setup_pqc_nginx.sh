@@ -47,19 +47,31 @@ else
 fi
 
 if [ -d "$HOME/nginx-1.27.4" ]; then
-    echo "OQS Provider directory found. Skipping clone and build..."
+    echo "nginx-1.27.4 directory found. Skipping download and build..."
 else
-    cd ..
-    echo "Cloning OpenQuantumSafe provider..."
+    echo "Downloading and building nginx-1.27.4..."
+    
+    # Create and enter working directory
+    mkdir -p "$HOME/nginx-build"
+    cd "$HOME/nginx-build"
+
+    # Download and extract nginx
     wget http://nginx.org/download/nginx-1.27.4.tar.gz
     tar -xvzf nginx-1.27.4.tar.gz
-    cd $HOME/nginx-1.27.4
+    rm nginx-1.27.4.tar.gz  # Clean up tarball
 
+    # Move to proper location
+    mv nginx-1.27.4 "$HOME/"
+
+    # Build nginx
+    cd "$HOME/nginx-1.27.4"
+    
     ./configure --prefix=/usr/local/nginx \
-            --with-http_ssl_module \
-            --with-http_gzip_static_module \
-            --with-http_v2_module \
-            --add-module=$HOME/nginx-zstd-module
+                --with-http_ssl_module \
+                --with-http_gzip_static_module \
+                --with-http_v2_module \
+                --add-module="$HOME/zstd-nginx-module"  # Fixed module name
+    
     make
     sudo make install
 fi
