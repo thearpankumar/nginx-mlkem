@@ -11,6 +11,9 @@ sudo apt install -y cmake libssl-dev ninja-build git python3-flask
 echo "Checking OpenSSL version..."
 openssl version || sudo apt install -y openssl
 
+
+HOME=/home/warmachine/codes/Encrypt5/nginx_with_mlkem
+
 # Check if OQS provider is already installed
 if [ -d "$HOME/oqs-provider" ]; then
     echo "OQS Provider directory found. Skipping clone and build..."
@@ -202,4 +205,4 @@ fi
 echo "Setup complete! Your website is now running with Post-Quantum Secure SSL."
 echo "Visit: https://example.com (Ensure you accept the self-signed SSL certificate in your browser.)"
 
-python3 app.py
+python3 /home/warmachine/codes/Encrypt5/nginx_with_mlkem/app.py
