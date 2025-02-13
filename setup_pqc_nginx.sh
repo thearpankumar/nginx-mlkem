@@ -49,6 +49,7 @@ fi
 if [ -d "$HOME/nginx-1.27.4" ]; then
     echo "OQS Provider directory found. Skipping clone and build..."
 else
+    cd ..
     echo "Cloning OpenQuantumSafe provider..."
     wget http://nginx.org/download/nginx-1.27.4.tar.gz
     tar -xvzf nginx-1.27.4.tar.gz
