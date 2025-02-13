@@ -6,7 +6,18 @@ echo "Updating package lists..."
 sudo apt update
 
 echo "Installing required packages..."
-sudo apt install -y cmake libssl-dev ninja-build git python3-flask
+sudo apt install -y \
+  build-essential \
+  libpcre3-dev \
+  zlib1g-dev \
+  libssl-dev \
+  libzstd-dev \
+  cmake \
+  ninja-build \
+  git \
+  python3-flask \
+  wget \
+  curl
 
 echo "Checking OpenSSL version..."
 openssl version || sudo apt install -y openssl
