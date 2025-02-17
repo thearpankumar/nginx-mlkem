@@ -1,49 +1,57 @@
-name: Test Nginx Setup Script
+name: Test Bash Script
 
 on:
   push:
     branches:
-      - main
+      - main  # Trigger on pushes to the main branch
   pull_request:
+    branches:
+      - main  # Trigger on pull requests targeting the main branch
 
 jobs:
   test-script:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Use the latest Ubuntu environment
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3  # Check out the repository code
 
-    - name: Make script executable
-      run: chmod +x ./your-script-name.sh
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'  # Set up Python 3.9 (or the version your app requires)
 
-    - name: Run Setup Script
-      run: sudo ./your-script-name.sh
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            build-essential \
+            libpcre3-dev \
+            zlib1g-dev \
+            libssl-dev \
+            libzstd-dev \
+            cmake \
+            ninja-build \
+            git \
+            python3-flask \
+            wget \
+            curl
 
-    - name: Check if Nginx is installed
-      run: |
-        if ! nginx -v; then
-          echo "Nginx is not installed!"
-          exit 1
-        fi
+      - name: Run the Bash script
+        run: |
+          chmod +x setup.sh  # Make the script executable
+          ./setup.sh  # Run the script
 
-    - name: Check if Nginx service is running
-      run: |
-        if ! systemctl status nginx | grep 'active (running)'; then
-          echo "Nginx is not running!"
-          exit 1
-        fi
-        
-    - name: Check if example.com is resolvable
-      run: |
-        if ! ping -c 1 example.com; then
-          echo "example.com is not reachable!"
-          exit 1
-        fi
+      - name: Verify Nginx is running
+        run: |
+          curl -I http://localhost:80  # Check if Nginx is serving HTTP
+          curl -Ik https://localhost:443  # Check if Nginx is serving HTTPS
 
-    - name: Check if Nginx is serving on HTTPS
-      run: |
-        if ! curl -k https://example.com; then
-          echo "Nginx is not serving on HTTPS!"
-          exit 1
-        fi
+      - name: Verify Flask app is running
+        run: |
+          curl -I http://127.0.0.1:5000  # Check if the Flask app is running
+
+      - name: Clean up
+        run: |
+          sudo systemctl stop nginx  # Stop Nginx
+          sudo rm -rf /usr/local/nginx /opt/certs /etc/systemd/system/nginx.service  # Clean up installed files
