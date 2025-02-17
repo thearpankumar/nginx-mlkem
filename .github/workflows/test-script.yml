@@ -51,11 +51,6 @@ jobs:
         run: |
           curl -I http://localhost:80  # Check if Nginx is serving HTTP
           curl -Ik https://localhost:443  # Check if Nginx is serving HTTPS
-
-      - name: Run Flask app in the background
-        run: |
-          python3 app.py &  # Run Flask in the background
-          echo $! > flask.pid  # Save the process ID to a file
   
       - name: Wait for Flask app to start
         run: |
