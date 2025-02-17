@@ -52,11 +52,25 @@ jobs:
           curl -I http://localhost:80  # Check if Nginx is serving HTTP
           curl -Ik https://localhost:443  # Check if Nginx is serving HTTPS
 
+      - name: Run Flask app in the background
+        run: |
+          python3 app.py &  # Run Flask in the background
+          echo $! > flask.pid  # Save the process ID to a file
+  
+      - name: Wait for Flask app to start
+        run: |
+          sleep 5  # Wait for the Flask app to start
+
       - name: Verify Flask app is running
         run: |
           curl -I http://127.0.0.1:5000  # Check if the Flask app is running
+
+      - name: Stop Flask app
+        run: |
+          kill $(cat flask.pid)  # Stop the Flask app using the saved process ID
 
       - name: Clean up
         run: |
           sudo systemctl stop nginx  # Stop Nginx
           sudo rm -rf /usr/local/nginx /opt/certs /etc/systemd/system/nginx.service  # Clean up installed files
+  
