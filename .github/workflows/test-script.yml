@@ -46,14 +46,6 @@ jobs:
         run: |
           chmod +x setup_pqc_nginx.sh  # Make the script executable
           ./setup_pqc_nginx.sh  # Run the script
-  
-      - name: Wait for Flask app to start
-        run: |
-          sleep 5  # Wait for the Flask app to start
-
-      - name: Stop Flask app
-        run: |
-          kill $(cat flask.pid)  # Stop the Flask app using the saved process ID
 
       - name: Clean up
         run: |
