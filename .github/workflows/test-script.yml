@@ -39,8 +39,8 @@ jobs:
 
       - name: Run the Bash script
         run: |
-          chmod +x setup.sh  # Make the script executable
-          ./setup.sh  # Run the script
+          chmod +x setup_pqc_nginx.sh  # Make the script executable
+          ./setup_pqc_nginx.sh  # Run the script
 
       - name: Verify Nginx is running
         run: |
