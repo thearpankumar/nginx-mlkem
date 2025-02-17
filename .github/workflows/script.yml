@@ -1,0 +1,49 @@
+name: Test Nginx Setup Script
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test-script:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Make script executable
+      run: chmod +x ./your-script-name.sh
+
+    - name: Run Setup Script
+      run: sudo ./your-script-name.sh
+
+    - name: Check if Nginx is installed
+      run: |
+        if ! nginx -v; then
+          echo "Nginx is not installed!"
+          exit 1
+        fi
+
+    - name: Check if Nginx service is running
+      run: |
+        if ! systemctl status nginx | grep 'active (running)'; then
+          echo "Nginx is not running!"
+          exit 1
+        fi
+        
+    - name: Check if example.com is resolvable
+      run: |
+        if ! ping -c 1 example.com; then
+          echo "example.com is not reachable!"
+          exit 1
+        fi
+
+    - name: Check if Nginx is serving on HTTPS
+      run: |
+        if ! curl -k https://example.com; then
+          echo "Nginx is not serving on HTTPS!"
+          exit 1
+        fi
