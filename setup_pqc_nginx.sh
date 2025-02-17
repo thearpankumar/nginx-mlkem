@@ -226,4 +226,4 @@ fi
 echo "Setup complete! Your website is now running with Post-Quantum Secure SSL."
 echo "Visit: https://example.com (Ensure you accept the self-signed SSL certificate in your browser.)"
 
-python3 $HOME/app.py
+python3 $HOME/app.py &
