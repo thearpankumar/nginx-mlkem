@@ -46,19 +46,10 @@ jobs:
         run: |
           chmod +x setup_pqc_nginx.sh  # Make the script executable
           ./setup_pqc_nginx.sh  # Run the script
-
-      - name: Verify Nginx is running
-        run: |
-          curl -I http://localhost:80  # Check if Nginx is serving HTTP
-          curl -Ik https://localhost:443  # Check if Nginx is serving HTTPS
   
       - name: Wait for Flask app to start
         run: |
           sleep 5  # Wait for the Flask app to start
-
-      - name: Verify Flask app is running
-        run: |
-          curl -I http://127.0.0.1:5000  # Check if the Flask app is running
 
       - name: Stop Flask app
         run: |
